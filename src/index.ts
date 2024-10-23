@@ -13,6 +13,18 @@ function doesReleaseNoteExists(description: string): boolean {
 	}
 }
 
+function isReleaseNoteIgnored(description: string): boolean {
+	const releaseNoteRegex = /\*Release Note:\*\n\n```\n([\s\S]*?)\n```/;
+	const releaseNoteMatch = description.match(releaseNoteRegex);
+
+	if (releaseNoteMatch) {
+		const content = releaseNoteMatch[1].trim();
+		return content.toLowerCase() === 'ignore';
+	}
+
+	return false;
+}
+
 async function doesReleaseNoteLabelExists(webhookLabelList: Label[]): Promise<boolean> {
 	const releaseNoteLabelId = '1ca89fa7-7b81-49cc-8a4d-c527692c4ec5';
 	return await doesLabelsExists(webhookLabelList, [releaseNoteLabelId]);
@@ -79,8 +91,10 @@ export default {
 			},
 		};
 
+		const isReleaseNoteIgnoredResult = isReleaseNoteIgnored(serializedRequestBody.data.description);
+		console.log('Release note ignored: ', isReleaseNoteIgnoredResult);
+
 		const userEmail = env.LINEAR_EMAIL_FILTER;
-		console.log('userEmail: ', userEmail);
 
 		if (serializedRequestBody.actor.email != userEmail) {
 			console.log('Actor is not ', userEmail, ' Skipping.');
@@ -88,8 +102,9 @@ export default {
 		} else if (serializedRequestBody.data.state.name != 'Ready To Review') {
 			console.log("State is not 'Ready to Review'. Skipping.");
 			return new Response();
+		} else if (isReleaseNoteIgnoredResult) {
+			return new Response('Release note ignored.');
 		}
-
 		// console.log(serializedRequestBody);
 
 		const doesReleaseNoteExistsResult = doesReleaseNoteExists(serializedRequestBody.data.description);
