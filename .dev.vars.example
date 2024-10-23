@@ -1,0 +1,8 @@
+# Linear API key
+LINEAR_API_KEY="lin_api_abcd"
+
+# Linear webhook sign key for validation webhooks are coming from linear
+LINEAR_WEBHOOK_SIGN="lin_wh_cex"
+
+# Email address to filter status updates from a specific user only.
+LINEAR_EMAIL_FILTER="user@example.com"
